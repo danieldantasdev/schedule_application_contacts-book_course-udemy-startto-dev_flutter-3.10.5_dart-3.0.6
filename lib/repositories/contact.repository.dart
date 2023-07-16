@@ -1,79 +1,59 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../models/models.dart';
 
 class ContactRepository {
-  static final ContactRepository _contactService =
-      ContactRepository._internal();
+  Future<Database> init() async {
+    Directory directory = await getApplicationDocumentsDirectory();
+    final path = join(directory.path, "contacts.db");
 
-  factory ContactRepository() => _contactService;
-
-  ContactRepository._internal();
-
-  Database? _database;
-
-  Future<Database?> get database async {
-    if (_database != null) {
-      return _database;
-    } else {
-      _database = await initDatabase();
-      return _database;
-    }
-  }
-
-  Future<Database> initDatabase() async {
-    final databasePath = await getDatabasesPath();
-    final path = join(databasePath, "contacts.db");
-
-    return openDatabase(path, version: 1, onCreate: (db, version) async {
-      await db.execute(
-        "CREATE TABLE contact ("
-        "id INTEGER PRIMARY KEY,"
-        "name TEXT,"
-        "email TEXT,"
-        "phone TEXT,"
-        "image TEXT"
-        ")",
-      );
+    return await openDatabase(path, version: 1,
+        onCreate: (Database db, int version) async {
+      await db.execute("""
+         CREATE TABLE contacts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT,
+          email TEXT,
+          phone TEXT,
+          image TEXT
+          )
+          """);
     });
   }
 
-  Future<int?> save(Contact contact) async {
-    final db = await database;
-    await db?.insert('contact', contact.toJson(),
-        conflictAlgorithm: ConflictAlgorithm.replace);
+  Future<int> save(Contact contact) async {
+    final db = await init();
+
+    return db.insert(
+      "contacts",
+      contact.toJson(),
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
   }
 
   Future<List<Contact>> getAll() async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db!.query('contact');
-    return List.generate(maps.length, (index) {
-      return Contact.fromJson(maps[index]);
+    final db = await init();
+    final maps = await db.query("contacts");
+
+    return List.generate(maps.length, (i) {
+      //create a list of memos
+      return Contact.fromJson(maps[i]);
     });
   }
 
   Future<Contact?> getById(int id) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db!.query(
-      'contact',
-      where: 'id = ?',
+    final db = await init();
+    final maps = await db.query(
+      "contacts",
+      where: "id = ?",
       whereArgs: [id],
     );
-    if (maps.isNotEmpty) {
-      return Contact.fromJson(maps.first);
-    } else {
-      return null;
-    }
-  }
 
-  Future<Contact?> getByPhone(String phone) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db!.query(
-      'contact',
-      where: 'phone = ?',
-      whereArgs: [phone],
-    );
     if (maps.isNotEmpty) {
       return Contact.fromJson(maps.first);
     } else {
@@ -82,33 +62,29 @@ class ContactRepository {
   }
 
   Future<int?> getCount() async {
-    final db = await database;
-    return Sqflite.firstIntValue(
-      await db!.rawQuery("SELECT COUNT(*) FROM contact"),
+    final db = await init();
+    var count = Sqflite.firstIntValue(
+      await db.rawQuery("SELECT COUNT(*) FROM contact"),
     );
+
+    return count;
   }
 
-  Future<int?> delete(int id) async {
-    final db = await database;
-    await db?.delete(
-      'contact',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+  Future<int> updateMemo(int id, Contact contact) async {
+    final db = await init();
+
+    int result = await db
+        .update("contacts", contact.toJson(), where: "id = ?", whereArgs: [id]);
+    return result;
   }
 
-  Future<int?> update(int id, Contact contact) async {
-    final db = await database;
-    await db?.update(
-      'contact',
-      contact.toJson(),
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
+  Future<int> deleteMemo(int id) async {
+    final db = await init();
 
-  Future<void> close() async {
-    final db = await database;
-    db!.close();
+    int result = await db.delete("contacts", //table name
+        where: "id = ?",
+        whereArgs: [id]);
+
+    return result;
   }
 }
