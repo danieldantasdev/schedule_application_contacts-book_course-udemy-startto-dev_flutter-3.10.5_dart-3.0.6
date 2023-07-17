@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:schedule/enums/enums.dart';
 import 'package:schedule/pages/create_or_update.page.dart';
 import 'package:schedule/repositories/contact.repository.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/models.dart';
 
@@ -23,47 +25,118 @@ class _HomePageState extends State<HomePage> {
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Card(
-          child: Row(children: <Widget>[
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: _contacts[index].image.isNotEmpty
-                      ? FileImage(File(_contacts[index].image)) as ImageProvider
-                      : const AssetImage("assets/person.png"),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(children: <Widget>[
+              Expanded(
+                flex: 2,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: _contacts[index].image.isNotEmpty
+                          ? FileImage(File(_contacts[index].image))
+                              as ImageProvider
+                          : const AssetImage("assets/person.png"),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
               ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _contacts[index].name ?? "",
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+              Expanded(
+                flex: 4,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _contacts[index].name ?? "",
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      _contacts[index].email ?? "",
+                      style: const TextStyle(
+                        fontSize: 15,
+                      ),
+                    ),
+                    Text(
+                      _contacts[index].phone ?? "",
+                      style: const TextStyle(
+                        fontSize: 15,
+                      ),
+                    )
+                  ],
                 ),
-                Text(
-                  _contacts[index].email ?? "",
-                  style: const TextStyle(
-                    fontSize: 15,
-                  ),
-                ),
-                Text(
-                  _contacts[index].phone ?? "",
-                  style: const TextStyle(
-                    fontSize: 15,
-                  ),
-                )
-              ],
-            ),
-          ]),
+              ),
+            ]),
+          ),
         ),
       ),
-      onTap: () => _showContactPage(contact: _contacts[index]),
+      onTap: () => _showOption(context, index),
+    );
+  }
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
+    );
+    await launchUrl(launchUri);
+  }
+
+  void _showOption(BuildContext buildContext, int index) {
+    showModalBottomSheet(
+      context: buildContext,
+      builder: (context) {
+        return BottomSheet(
+          onClosing: () {},
+          builder: (context) {
+            return Container(
+              padding: const EdgeInsets.all(10.00),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  ElevatedButton(
+                    onPressed: () {
+                      _makePhoneCall(_contacts[index].phone);
+                      Navigator.pop(context);
+                    },
+                    child: const Text("Ligar"),
+                  ),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _showContactPage(contact: _contacts[index]);
+                    },
+                    child: const Text("Editar"),
+                  ),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _contactRepository.delete(_contacts[index].id);
+                        _contacts.removeAt(index);
+                        Navigator.pop(context);
+                      });
+                    },
+                    child: const Text("Excluir"),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -97,6 +170,22 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _onSelected(Order order) {
+    switch (order) {
+      case Order.az:
+        _contacts.sort((a, b) {
+          return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        });
+        break;
+      case Order.za:
+        _contacts.sort((a, b) {
+          return b.name.toLowerCase().compareTo(a.name.toLowerCase());
+        });
+        break;
+    }
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
@@ -110,12 +199,20 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         title: const Text('contatos'),
         centerTitle: true,
-        actions: const [
-          Icon(
-            Icons.menu,
-            color: Colors.white,
-            size: 30,
-          ),
+        actions: <Widget>[
+          PopupMenuButton<Order>(
+            itemBuilder: (context) => <PopupMenuEntry<Order>>[
+              const PopupMenuItem<Order>(
+                child: Text("Ordem crescente"),
+                value: Order.az,
+              ),
+              const PopupMenuItem<Order>(
+                child: Text("Ordem decrescente"),
+                value: Order.za,
+              )
+            ],
+            onSelected: _onSelected,
+          )
         ],
       ),
       body: ListView.builder(
