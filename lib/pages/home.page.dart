@@ -24,46 +24,55 @@ class _HomePageState extends State<HomePage> {
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Card(
-          child: Row(children: <Widget>[
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: _contacts[index].image.isNotEmpty
-                      ? FileImage(File(_contacts[index].image)) as ImageProvider
-                      : const AssetImage("assets/person.png"),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(children: <Widget>[
+              Expanded(
+                flex: 2,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: _contacts[index].image.isNotEmpty
+                          ? FileImage(File(_contacts[index].image))
+                              as ImageProvider
+                          : const AssetImage("assets/person.png"),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _contacts[index].name ?? "",
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+              Expanded(
+                flex: 4,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _contacts[index].name ?? "",
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  Text(
-                    _contacts[index].email ?? "",
-                    style: const TextStyle(
-                      fontSize: 15,
+                    Text(
+                      _contacts[index].email ?? "",
+                      style: const TextStyle(
+                        fontSize: 15,
+                      ),
                     ),
-                  ),
-                  Text(
-                    _contacts[index].phone ?? "",
-                    style: const TextStyle(
-                      fontSize: 15,
-                    ),
-                  )
-                ],
+                    Text(
+                      _contacts[index].phone ?? "",
+                      style: const TextStyle(
+                        fontSize: 15,
+                      ),
+                    )
+                  ],
+                ),
               ),
-            ),
-          ]),
+            ]),
+          ),
         ),
       ),
       onTap: () => _showOption(context, index),

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../models/models.dart';
 
@@ -69,6 +70,68 @@ class _CreateOrUpdatePageState extends State<CreateOrUpdatePage> {
     }
   }
 
+  Future<File?> _onCaptureImageFromCamera() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+
+    if (pickedFile != null) {
+      setState(() {
+        _editContact.image = pickedFile.path;
+      });
+      return File(pickedFile.path);
+    }
+
+    return null;
+  }
+
+  Future<File?> _onCaptureImageFromGallery() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _editContact.image = pickedFile.path;
+      });
+      return File(pickedFile.path);
+    }
+
+    return null;
+  }
+
+  Future<void> _showImageSourceDialog() async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Selecione uma imagem'),
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _onCaptureImageFromCamera();
+                },
+                child: const Text('Câmera'),
+              ),
+              const SizedBox(
+                width: 20,
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _onCaptureImageFromGallery();
+                },
+                child: const Text('Galeria'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -96,9 +159,13 @@ class _CreateOrUpdatePageState extends State<CreateOrUpdatePage> {
                           ? FileImage(File(_editContact.image!))
                               as ImageProvider
                           : const AssetImage("assets/person.png"),
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
+                onTap: () {
+                  _showImageSourceDialog();
+                },
               ),
               TextField(
                 focusNode: _focusNodeName,
