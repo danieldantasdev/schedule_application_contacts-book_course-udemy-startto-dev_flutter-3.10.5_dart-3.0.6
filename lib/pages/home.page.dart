@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:schedule/pages/create_or_update.page.dart';
 import 'package:schedule/repositories/contact.repository.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/models.dart';
 
@@ -36,35 +37,45 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _contacts[index].name ?? "",
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _contacts[index].name ?? "",
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                Text(
-                  _contacts[index].email ?? "",
-                  style: const TextStyle(
-                    fontSize: 15,
+                  Text(
+                    _contacts[index].email ?? "",
+                    style: const TextStyle(
+                      fontSize: 15,
+                    ),
                   ),
-                ),
-                Text(
-                  _contacts[index].phone ?? "",
-                  style: const TextStyle(
-                    fontSize: 15,
-                  ),
-                )
-              ],
+                  Text(
+                    _contacts[index].phone ?? "",
+                    style: const TextStyle(
+                      fontSize: 15,
+                    ),
+                  )
+                ],
+              ),
             ),
           ]),
         ),
       ),
       onTap: () => _showOption(context, index),
     );
+  }
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
+    );
+    await launchUrl(launchUri);
   }
 
   void _showOption(BuildContext buildContext, int index) {
@@ -81,7 +92,10 @@ class _HomePageState extends State<HomePage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      _makePhoneCall(_contacts[index].phone);
+                      Navigator.pop(context);
+                    },
                     child: const Text("Ligar"),
                   ),
                   const SizedBox(
