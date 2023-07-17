@@ -43,21 +43,21 @@ class _CreateOrUpdatePageState extends State<CreateOrUpdatePage> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text("Descartar alterações"),
-            content: Text("Suas alterações serão perdidas"),
+            title: const Text("Descartar alterações"),
+            content: const Text("Suas alterações serão perdidas"),
             actions: <Widget>[
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                child: Text("Cancelar"),
+                child: const Text("Cancelar"),
               ),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
                   Navigator.pop(context);
                 },
-                child: Text("Sair"),
+                child: const Text("Sair"),
               ),
             ],
           );

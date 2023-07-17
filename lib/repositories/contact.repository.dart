@@ -78,7 +78,7 @@ class ContactRepository {
     return result;
   }
 
-  Future<int> delete(int id) async {
+  Future<int> delete(int? id) async {
     final db = await init();
 
     int result = await db.delete("contacts", //table name

@@ -63,7 +63,56 @@ class _HomePageState extends State<HomePage> {
           ]),
         ),
       ),
-      onTap: () => _showContactPage(contact: _contacts[index]),
+      onTap: () => _showOption(context, index),
+    );
+  }
+
+  void _showOption(BuildContext buildContext, int index) {
+    showModalBottomSheet(
+      context: buildContext,
+      builder: (context) {
+        return BottomSheet(
+          onClosing: () {},
+          builder: (context) {
+            return Container(
+              padding: const EdgeInsets.all(10.00),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  ElevatedButton(
+                    onPressed: () {},
+                    child: const Text("Ligar"),
+                  ),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _showContactPage(contact: _contacts[index]);
+                    },
+                    child: const Text("Editar"),
+                  ),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _contactRepository.delete(_contacts[index].id);
+                        _contacts.removeAt(index);
+                        Navigator.pop(context);
+                      });
+                    },
+                    child: const Text("Excluir"),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
