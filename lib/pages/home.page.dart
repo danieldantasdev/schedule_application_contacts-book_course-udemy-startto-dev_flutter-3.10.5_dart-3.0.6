@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:schedule/enums/enums.dart';
 import 'package:schedule/pages/create_or_update.page.dart';
 import 'package:schedule/repositories/contact.repository.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -169,6 +170,22 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _onSelected(Order order) {
+    switch (order) {
+      case Order.az:
+        _contacts.sort((a, b) {
+          return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        });
+        break;
+      case Order.za:
+        _contacts.sort((a, b) {
+          return b.name.toLowerCase().compareTo(a.name.toLowerCase());
+        });
+        break;
+    }
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
@@ -182,12 +199,20 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         title: const Text('contatos'),
         centerTitle: true,
-        actions: const [
-          Icon(
-            Icons.menu,
-            color: Colors.white,
-            size: 30,
-          ),
+        actions: <Widget>[
+          PopupMenuButton<Order>(
+            itemBuilder: (context) => <PopupMenuEntry<Order>>[
+              const PopupMenuItem<Order>(
+                child: Text("Ordem crescente"),
+                value: Order.az,
+              ),
+              const PopupMenuItem<Order>(
+                child: Text("Ordem decrescente"),
+                value: Order.za,
+              )
+            ],
+            onSelected: _onSelected,
+          )
         ],
       ),
       body: ListView.builder(
