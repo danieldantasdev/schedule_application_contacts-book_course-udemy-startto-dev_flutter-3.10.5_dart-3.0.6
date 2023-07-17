@@ -37,82 +37,119 @@ class _CreateOrUpdatePageState extends State<CreateOrUpdatePage> {
     }
   }
 
+  Future<bool> _onWillPop() async {
+    if (_userEdited) {
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Descartar alterações"),
+            content: Text("Suas alterações serão perdidas"),
+            actions: <Widget>[
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text("Cancelar"),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                child: Text("Sair"),
+              ),
+            ],
+          );
+        },
+      );
+      return Future.value(false);
+    } else {
+      return Future.value(true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        title: Text(
-            _editContact.name.isNotEmpty ? _editContact.name! : 'Novo Contato'),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: <Widget>[
-            GestureDetector(
-              child: Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                    image: _editContact.image.isNotEmpty
-                        ? FileImage(File(_editContact.image!)) as ImageProvider
-                        : const AssetImage("assets/person.png"),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          title: Text(_editContact.name.isNotEmpty
+              ? _editContact.name!
+              : 'Novo Contato'),
+          centerTitle: true,
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: <Widget>[
+              GestureDetector(
+                child: Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: _editContact.image.isNotEmpty
+                          ? FileImage(File(_editContact.image!))
+                              as ImageProvider
+                          : const AssetImage("assets/person.png"),
+                    ),
                   ),
                 ),
               ),
-            ),
-            TextField(
-              focusNode: _focusNodeName,
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: "Nome",
+              TextField(
+                focusNode: _focusNodeName,
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: "Nome",
+                ),
+                onChanged: (text) {
+                  _userEdited = true;
+                  setState(() {
+                    _editContact.name = text;
+                  });
+                },
               ),
-              onChanged: (text) {
-                _userEdited = true;
-                setState(() {
-                  _editContact.name = text;
-                });
-              },
-            ),
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: "Email",
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: "Email",
+                ),
+                onChanged: (text) {
+                  _userEdited = true;
+                  _editContact.email = text;
+                },
+                keyboardType: TextInputType.emailAddress,
               ),
-              onChanged: (text) {
-                _userEdited = true;
-                _editContact.email = text;
-              },
-              keyboardType: TextInputType.emailAddress,
-            ),
-            TextField(
-              controller: _phoneController,
-              decoration: const InputDecoration(
-                labelText: "Phone",
+              TextField(
+                controller: _phoneController,
+                decoration: const InputDecoration(
+                  labelText: "Phone",
+                ),
+                onChanged: (text) {
+                  _userEdited = true;
+                  _editContact.phone = text;
+                },
+                keyboardType: TextInputType.phone,
               ),
-              onChanged: (text) {
-                _userEdited = true;
-                _editContact.phone = text;
-              },
-              keyboardType: TextInputType.phone,
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          if (_editContact.name.isNotEmpty && _userEdited) {
-            Navigator.pop(context, _editContact);
-          } else {
-            FocusScope.of(context).requestFocus(_focusNodeName);
-          }
-        },
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        child: const Icon(
-          Icons.save,
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            if (_editContact.name.isNotEmpty && _userEdited) {
+              Navigator.pop(context, _editContact);
+            } else {
+              FocusScope.of(context).requestFocus(_focusNodeName);
+            }
+          },
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          child: const Icon(
+            Icons.save,
+          ),
         ),
       ),
     );
