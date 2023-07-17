@@ -70,7 +70,7 @@ class ContactRepository {
     return count;
   }
 
-  Future<int> updateMemo(int id, Contact contact) async {
+  Future<int> update(int? id, Contact contact) async {
     final db = await init();
 
     int result = await db
@@ -78,7 +78,7 @@ class ContactRepository {
     return result;
   }
 
-  Future<int> deleteMemo(int id) async {
+  Future<int> delete(int id) async {
     final db = await init();
 
     int result = await db.delete("contacts", //table name

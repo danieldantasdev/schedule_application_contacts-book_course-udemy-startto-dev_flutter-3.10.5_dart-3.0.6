@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:schedule/pages/create_or_update.page.dart';
 import 'package:schedule/repositories/contact.repository.dart';
 
 import '../models/models.dart';
@@ -17,7 +18,7 @@ class _HomePageState extends State<HomePage> {
   final ContactRepository _contactRepository = ContactRepository();
   List<Contact> _contacts = [];
 
-  Widget _cardBuilder(BuildContext buildContext, int index) {
+  Widget _itemBuilder(BuildContext buildContext, int index) {
     return GestureDetector(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -62,12 +63,30 @@ class _HomePageState extends State<HomePage> {
           ]),
         ),
       ),
+      onTap: () => _showContactPage(contact: _contacts[index]),
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
+  void _showContactPage({Contact? contact}) async {
+    final reqContact = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreateOrUpdatePage(contact: contact),
+      ),
+    );
+
+    if (reqContact != null) {
+      if (contact != null) {
+        reqContact.id = contact.id;
+        await _contactRepository.update(reqContact.id, reqContact);
+      } else {
+        await _contactRepository.save(reqContact);
+      }
+      _getAll();
+    }
+  }
+
+  void _getAll() {
     _contactRepository.getAll().then(
       (value) {
         setState(() {
@@ -79,14 +98,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _getAll();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
         title: const Text('contatos'),
         centerTitle: true,
-        actions: [
-          const Icon(
+        actions: const [
+          Icon(
             Icons.menu,
             color: Colors.white,
             size: 30,
@@ -96,12 +121,14 @@ class _HomePageState extends State<HomePage> {
       body: ListView.builder(
         padding: const EdgeInsets.all(8.0),
         itemBuilder: (context, index) {
-          return _cardBuilder(context, index);
+          return _itemBuilder(context, index);
         },
         itemCount: _contacts.length,
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          _showContactPage(contact: null);
+        },
         backgroundColor: Theme.of(context).colorScheme.primary,
         child: const Icon(
           Icons.add,
