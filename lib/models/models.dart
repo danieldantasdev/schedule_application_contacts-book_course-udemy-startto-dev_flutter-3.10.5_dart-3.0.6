@@ -1,0 +1,1 @@
+export 'contact.model.dart';
